@@ -14,7 +14,7 @@ Parameters are parsed one by one.
 
 **Example (Linux)**
 
-`hash_file my_file res.txt 1024`
+`./hash_file my_file res.txt 1024`
 
 _Legend_
 
