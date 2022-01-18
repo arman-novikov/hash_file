@@ -1,4 +1,4 @@
-## Utility to hash file by chunks
+## Utility to hash files by chunks
 
 ### Usage
 
