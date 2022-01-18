@@ -2,7 +2,8 @@
 
 ### Usage
 
-**compiled utility usage** 
+**compiled utility usage**
+
 run in terminal supplying 2 and 1 optional arguments.
 
 Parameters are parsed one by one.
