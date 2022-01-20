@@ -36,22 +36,27 @@ std::string hash_buffer(const void* buff, size_t buff_size, size_t block_size)
     workers.reserve(num_cores);
     for (size_t i = 0; i < num_cores; ++i) {
         workers.emplace_back(Worker{&hasher});
-    }
-    for (size_t i = 0; i < num_blocks; ++i) {
-        const auto start = reinterpret_cast<const uint8_t*>(buff) + i * block_size;
-        const auto segm_size = i != num_blocks - 1 ? block_size:
-            buff_size - i * block_size; // the last one takes remainings
-        workers[i%num_cores].AddTask(
-            reinterpret_cast<const void*>(start),
-            segm_size,
-            &results[i]
-        );
-    }
+    }    
+    const size_t num_blocks_for_each = num_blocks / workers.size();
+    for (size_t i = 0; i < workers.size(); ++i) {
+        size_t end = num_blocks_for_each;
+        if (i == workers.size() - 1) {
+            end = num_blocks - i * num_blocks_for_each;
+        }
 
-    for (auto& i: workers) {
-        i.Launch();
+        for (size_t j = 0; j < end; ++j) {
+            const size_t offset = i * num_blocks_for_each + j;
+            const auto start = reinterpret_cast<const uint8_t*>(buff) + offset * block_size;
+            const auto segm_size = offset != num_blocks - 1 ? block_size:
+                buff_size - offset * block_size; // the last one takes remainings
+            workers[i].AddTask(
+                reinterpret_cast<const void*>(start),
+                segm_size,
+                &results[offset]
+            );
+        }
+        workers[i].Launch();
     }
-
     for (auto& i: workers) {
         i.Wait();
     }
