@@ -33,23 +33,22 @@ std::string hash_buffer(const void* buff, size_t buff_size, size_t block_size)
     }
     std::vector<std::string> results(num_blocks);
     std::vector<Worker> workers;
-    workers.reserve(num_cores);
-    for (size_t i = 0; i < num_cores; ++i) {
+    const size_t num_workers = std::min(num_cores, num_blocks);
+    workers.reserve(num_workers);
+    for (size_t i = 0; i < num_workers; ++i) {
         workers.emplace_back(Worker{&hasher});
+        workers[i].Launch();
     }
+
     for (size_t i = 0; i < num_blocks; ++i) {
         const auto start = reinterpret_cast<const uint8_t*>(buff) + i * block_size;
         const auto segm_size = i != num_blocks - 1 ? block_size:
             buff_size - i * block_size; // the last one takes remainings
-        workers[i%num_cores].AddTask(
+        workers[i%num_workers].AddTask(
             reinterpret_cast<const void*>(start),
             segm_size,
             &results[i]
         );
-    }
-
-    for (auto& i: workers) {
-        i.Launch();
     }
 
     for (auto& i: workers) {
